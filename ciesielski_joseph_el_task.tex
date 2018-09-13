@@ -1,0 +1,541 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdftitle={Implementation of EL model and academic proficiency},
+            pdfauthor={Joe Ciesielski},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\newcommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+
+  \title{Implementation of EL model and academic proficiency}
+    \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+    \author{Joe Ciesielski}
+    \preauthor{\centering\large\emph}
+  \postauthor{\par}
+      \predate{\centering\large\emph}
+  \postdate{\par}
+    \date{9/12/2018}
+
+\usepackage{array}
+\usepackage{caption}
+\usepackage{graphicx}
+\usepackage{siunitx}
+\usepackage[table]{xcolor}
+\usepackage{multirow}
+\usepackage{hhline}
+\usepackage{calc}
+\usepackage{tabularx}
+
+\begin{document}
+\maketitle
+
+\hypertarget{analyzing-the-data}{%
+\subsection{Analyzing the data}\label{analyzing-the-data}}
+
+Before digging in to the data, I'd like to spend time with stakeholders
+to understand the types of decisions that are being made with this
+information. Ultimately the goals is to help inform those decisions and
+I'd want my analysis to be able to intersect with those decision-making
+processes.
+
+Given my limited experience with the EL model, I'd first start with
+exploring the relationship between the IR score and measures of academic
+proficiency. Below is a correlation matrix of IR and school / district
+proficiency variables.
+
+I created two additional variables to add to this analysis. First is
+``ir\_diff'', which is the precent difference between the IR score and
+the IR target for each school. The second is ``school\_dist\_diff'',
+which represents the precent difference between the school and district
+proficiency for each subject.
+
+\begin{center}\includegraphics{ciesielski_joseph_el_task_files/figure-latex/unnamed-chunk-1-1} \end{center}
+
+\hypertarget{initial-findings}{%
+\subsection{Initial findings}\label{initial-findings}}
+
+A number of things stick out to me. First is that there is a strong
+negative relationship between IR differential (the difference between IR
+score and target) and IR target. This suggests that school with high IR
+scores get closer to their targets (have a lower differential).
+
+There also appears to be a week correlation betwen the IR score and
+school proficiency. That suggests that IR score is not a direct measure
+of school proficiency. IR score and school profiency independence means
+that the IR rating is not just a proxy for academic success, which is a
+positive finding.
+
+However, the finding that stands out to me the most is the somewhat
+strong negative relationship between IR differential and school /
+district proficiency (outlined in the yellow box above). This means that
+scores with higher rates are proficiency (or schools in districts with
+higher rates of profieicny) are scoring closer to their targets while
+schools with more limited academic success are more likley to score high
+above their target.
+
+\hypertarget{deeper-look-at-ir-differential-and-proficiency}{%
+\subsection{Deeper look at IR differential and
+proficiency}\label{deeper-look-at-ir-differential-and-proficiency}}
+
+The first question I have about this finding is how the target score
+imapcts the IR difference.
+
+\begin{center}\includegraphics{ciesielski_joseph_el_task_files/figure-latex/unnamed-chunk-2-1} \end{center}
+
+The chart obove shows the relationship between school proficiency and IR
+difference for each of the three target scores. While schools with
+higher targets targets score closer to those targets, the negative
+relationship between proficiency and IR difference persists in for two
+of the three target groups. Only two schools had a 66 target, so it's
+difficult to say if this pattern holds true for those schools.
+
+Since we only have one IR score for each school, but data on multiple
+years and subjects for academic proficiency, we should also breakdown
+the IR difference / proficiency relationship by some of these other
+factors to see if our pattern persists.
+
+\begin{center}\includegraphics{ciesielski_joseph_el_task_files/figure-latex/unnamed-chunk-3-1} \end{center}
+
+Above we see that the IR difference decreases with increase school
+proficiency for each year.
+
+\begin{center}\includegraphics{ciesielski_joseph_el_task_files/figure-latex/unnamed-chunk-4-1} \end{center}
+
+The chart above shows that IR difference decreases with school profiency
+for both math and ELA.
+
+\begin{center}\includegraphics{ciesielski_joseph_el_task_files/figure-latex/unnamed-chunk-5-1} \end{center}
+
+Finaly, we see that the pattern holds for both charter and district
+schools.
+
+It's also useful to construct a model to determine the numerical
+relationship between these variables. I created a simple linear
+regression that compares IR difference to school proficiency accounting
+for both year and subject.
+
+\begin{table}[h]
+\centering\captionsetup{justification=centering,singlelinecheck=off}
+\caption{Regression table of IR difference}
+\begin{tabularx}{0.5\textwidth}{p{0.1\textwidth} p{0.1\textwidth} p{0.1\textwidth} p{0.1\textwidth} p{0.1\textwidth}}
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright term\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright estimate\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright std.error\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright statistic\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright p.value\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright (Intercept)\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{r!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedleft 0.237~\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{r!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedleft 0.0443\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{r!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedleft 5.35~\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{r!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedleft 7.42e-07\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright school\_prof\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{r!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedleft -0.186~\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{r!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedleft 0.0489\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{r!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedleft -3.82~\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{r!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedleft 0.000256\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright year2012-2013\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{r!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedleft -0.0221\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{r!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedleft 0.0233\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{r!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedleft -0.947\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{r!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedleft 0.346~~~\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright year2013-2014\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{r!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedleft -0.0215\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{r!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedleft 0.0233\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{r!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedleft -0.924\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{r!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedleft 0.358~~~\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright subjectmath\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{r!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedleft -0.0225\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{r!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedleft 0.0194\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{r!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedleft -1.16~\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{r!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedleft 0.248~~~\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+\end{tabularx}
+\end{table}
+
+The table above says that if a school goes from 0\% to 100\% proficient,
+regardless of year or subject, we can expect about a 19 point decrease
+in the precent difference between IR score and IR target. Obviously, a
+school with 0\% proficient is not realistic, but this does help to
+quantify the strength of the relationship.
+
+One possible explanation for this finding is that there are ceiling
+effects. This is the idea that there is some maximum score and that as
+you get closer to this score, large changes become more challening. It
+may be worth exploring how targets are set to ensure that schools with
+high rates of academic proficiency have targets set which are
+challenging for them.
+
+\hypertarget{sharing-findings}{%
+\subsection{Sharing findings}\label{sharing-findings}}
+
+I would like to share the above finding with stakeholders, specifically
+to explore individual schools to determine if it holds true and help to
+inform decisions.
+
+\begin{center}\includegraphics{ciesielski_joseph_el_task_files/figure-latex/unnamed-chunk-7-1} \end{center}
+
+The chart above shows the residuals for each school. The residuals are
+the predicted difference between IR score and IR target based on school
+proficiency rates. High residuals show scores that are greatly
+outperforming their predicited difference; low residuals show schools
+that are at or below their predicted difference.
+
+School 2 seems to be exceeding their target by a large amount. Below is
+some specific data about this school.
+
+\begin{table}[h]
+\centering\begin{tabularx}{0.5\textwidth}{p{0.25\textwidth} p{0.25\textwidth}}
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright school\_name\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright School 2\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright governance\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright Charter\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright setting\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright Suburban\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright \_subgroup\_ell\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright 0.106\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright \_subgroup\_frl\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright 0.781\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright years\_as\_el\_school\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright 2\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright ir\_score\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright 88\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright ir\_target\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright 66\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright ela 2011-2012\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright 0.573\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright ela 2012-2013\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright 0.608\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright ela 2013-2014\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright 0.519\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright math 2011-2012\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright 0.546\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright math 2012-2013\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright 0.511\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright math 2013-2014\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright 0.514\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+\end{tabularx}
+\end{table}
+
+School 2 has a high percentage of low-income students (based on free and
+reduced lunch), has been an EL school for two years, has an IR target of
+66, and conistently has slightly more than half of their students
+proficient. They far out-paced their target by getting an 88 on the IR,
+a greater difference than any other school. Assuming this target was
+appropriate for them, it may be worth exploring what contributed to
+their success, and using this school as a model for others.
+
+\begin{table}[h]
+\centering\begin{tabularx}{0.5\textwidth}{p{0.25\textwidth} p{0.25\textwidth}}
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright school\_name\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright School 7\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright governance\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright District\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright setting\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright Urban\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright \_subgroup\_ell\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright 0.221\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright \_subgroup\_frl\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright 0.445\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright years\_as\_el\_school\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright 9\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright ir\_score\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright 97\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright ir\_target\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright 98\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright ela 2011-2012\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright 0.818\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright ela 2012-2013\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright 0.788\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright ela 2013-2014\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright 0.391\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright math 2011-2012\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright 0.605\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright math 2012-2013\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright 0.598\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\vrule width 0pt}l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright math 2013-2014\rule[-4pt]{0pt}{4pt}} &
+\multicolumn{1}{l!{\vrule width 0pt}}{\cellcolor[RGB]{255, 255, 255}\rule{0pt}{\baselineskip+4pt}\raggedright 0.289\rule[-4pt]{0pt}{4pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+\end{tabularx}
+\end{table}
+
+School 7 had the lowest residuals. Being an EL school for 9 years, they
+had an IR target of 98. They had high rates of profieincy for two years
+of the data but saw major drops in proficiency in 2013-14. There is
+likley some larger context here, such as changes in school leadership,
+testing, or neighborhood, that is worth exploring.
+
+The finding above becomes useful when we examine how it plays out in
+individual schools and district. It would be important to work with EL
+staff to determine how, if at all, this might impact their work with
+schools.
+
+In order to share the rest of the data with schools and districts, it
+would I would create two resources. The first would be an ineractive
+tool which would allow schools and districts to explore the data on
+their own. This would allow them to modify visulizations so that they
+could explore the realtionship between IR score and math proficiency,
+for example. They could drill down to specific schools or pull back to
+look at whole districts. I have found putting data in the hands of
+practioners and stakeholders generates useufl insights and questions
+which can then be explored with more in-depth analysis.
+
+However, there is still the need to have some summative findings. For
+each school, I would create a report which shared their final IR score
+(ideally including measures for each of the core practices rather than
+just a final number), alongside their school demographics and
+proficiency rates. It would show how their school compares to similar
+school. These could be used to facilitate conversations about areas of
+strength and growth. District would receive similar reports that
+included a district level version with information about each of their
+schools.
+
+
+\end{document}

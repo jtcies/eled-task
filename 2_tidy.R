@@ -9,18 +9,18 @@ dat <- read_excel(here::here("data/Research Manager Task-2.xlsx"), skip = 1) %>%
   fix_names()
 
 names(dat)[9:20] <- c(
-  "ela_school_2011_2012",
-  "ela_district_2011_2012",
-  "ela_school_2012_2013",
-  "ela_district_2012_2013",
-  "ela_school_2013_2014",
-  "ela_district_2013_2014",
-  "math_school_2011_2012",
-  "math_district_2011_2012",
-  "math_school_2012_2013",
-  "math_district_2012_2013",
-  "math_school_2013_2014",
-  "math_district_2013_2014"
+  "ela_school_prof_2011_2012",
+  "ela_district_prof_2011_2012",
+  "ela_school_prof_2012_2013",
+  "ela_district_prof_2012_2013",
+  "ela_school_prof_2013_2014",
+  "ela_district_prof_2013_2014",
+  "math_school_prof_2011_2012",
+  "math_district_prof_2011_2012",
+  "math_school_prof_2012_2013",
+  "math_district_prof_2012_2013",
+  "math_school_prof_2013_2014",
+  "math_district_prof_2013_2014"
 )
 # remove first row
 dat <- dat[-1, ]
@@ -52,5 +52,13 @@ yr_1314 <- select(tidy_subj, 1:8, subject, contains("2013_2014")) %>%
 names(yr_1314) <- gsub("_2013_2014", "", names(yr_1314))
 
 tidy_dat <- bind_rows(yr_1112, yr_1213, yr_1314)
+
+# fill in missing data
+
+tidy_dat <- tidy_dat %>% 
+  group_by(school_name, subject) %>% 
+  arrange(year) %>% 
+  fill(school_prof) %>% 
+  fill(district_prof)
 
 write_csv(tidy_dat, here::here("data/tidied_data.csv"))

@@ -1,0 +1,225 @@
+---
+title: "Implementation of EL model and academic proficiency"
+author: "Joe Ciesielski"
+date: "9/12/2018"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      fig.width = 10,
+                      fig.asp = 0.618,
+                      fig.align = "center")
+
+library(tidyverse)
+library(jtcr)
+library(here)
+library(ggcorrplot)
+library(broom)
+library(forcats)
+library(pander)
+
+el_dat <- read_csv(here::here("data/tidied_data.csv"))
+
+el_dat <- el_dat %>% 
+  mutate(
+    school_dist_diff = (school_prof - district_prof) / district_prof,
+    ir_diff = (ir_score - ir_target) / ir_target
+  )
+```
+
+
+## Analyzing the data
+
+Before digging in to the data, I'd like to spend time with stakeholders to understand the types of decisions that are being made with this information. Ultimately the goals is to help inform those decisions and I'd want my analysis to be able to intersect with those decision-making processes. 
+
+Given my limited experience with the EL model, I'd first start with exploring the relationship between the IR score and measures of academic proficiency.
+Below is a correlation matrix of IR and school / district proficiency variables. 
+
+I created two additional variables to add to this analysis. First is "ir_diff", which is the percent difference between the IR score and the IR target for each school. The second is "school_dist_diff", which represents the percent difference between the school and district proficiency for each subject. 
+
+```{r}
+r <- cor(el_dat[c(7,8,10,11,13,14)])
+
+ggcorrplot(
+  r,
+  hc.order = TRUE,
+  type = "lower",
+  colors = c(jtc_oranges[[2]], "white", jtc_blues[[2]]),
+  lab = TRUE
+) +
+  theme_jtc(base_family = "") +
+  labs(
+    title = "Negative relationship between scoring above\nIR target and school/district proficiency"
+  ) +
+  geom_rect(
+    aes(xmin = 3.5, xmax = 5.5, ymin = 1.5, ymax = 2.5),
+    color = jtc_yellows[[3]], size = 3, alpha = 0,
+    inherit.aes = FALSE, show.legend = FALSE
+  )
+```
+
+## Initial findings
+
+A number of things stick out to me. First is that there is a strong negative relationship between IR difference (the difference between IR score and target) and IR target. This suggests that school with high IR scores get closer to their targets (have a lower difference). 
+
+There also appears to be a week correlation between the IR score and school proficiency. That suggests that IR score is not a direct measure of school proficiency. IR score and school proficiency independence means that the IR rating is not just a proxy for academic success, which is a positive finding. 
+
+However, the finding that stands out to me the most is the somewhat strong negative relationship between IR difference and school / district proficiency (outlined in the yellow box above). This means that scores with higher rates are proficiency (or schools in districts with higher rates of proficiency) are scoring closer to their targets while schools with more limited academic success are more likely to score high above their target.
+
+## Deeper look at IR difference and proficiency
+
+The first question I have about this finding is how the target score impacts the IR difference.
+
+```{r}
+ggplot(el_dat, aes(school_prof, ir_diff)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = jtc_oranges[[2]]) +
+  facet_wrap(~ir_target) +
+theme_jtc(background = "light", base_family = "") +
+  labs(
+    title = "Schools with higher rates of proficiency have IR scores closer\nto target",
+    subtitle = "IR difference and proficiency by target IR score",
+    x = "school proficiency",
+    y = "IR difference"
+  )
+```
+
+The chart above shows the relationship between school proficiency and IR difference for each of the three target scores. While schools with higher targets targets score closer to those targets, the negative relationship between proficiency and IR difference persists in for two of the three target groups. Only two schools had a 66 target, so it's difficult to say if this pattern holds true for those schools. 
+
+Since we only have one IR score for each school, but data on multiple years and subjects for academic proficiency, we should also breakdown the IR difference / proficiency relationship by some of these other factors to see if our pattern persists. 
+
+```{r}
+
+ggplot(el_dat, aes(district_prof, ir_diff)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = jtc_oranges[[2]]) +
+  facet_wrap(~year) +
+theme_jtc(background = "light", base_family = "") +
+  labs(
+    title = "Schools with higher rates of proficiency have IR scores closer\nto target",
+    subtitle = "IR difference and proficiency by year",
+    x = "school proficiency",
+    y = "IR difference"
+  )
+```
+
+Above we see that the IR difference decreases with increase school proficiency for each year. 
+
+```{r}
+
+ggplot(el_dat, aes(district_prof, ir_diff)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = jtc_oranges[[2]]) +
+  facet_wrap(~subject) + 
+ theme_jtc(background = "light", base_family = "") +
+  labs(
+    title = "Schools with higher rates of proficiency have IR scores closer\nto target",
+    subtitle = "IR difference and proficiency by subject",
+    x = "school proficiency",
+    y = "IR difference"
+  )
+
+```
+
+The chart above shows that IR difference decreases with school proficiency for both math and ELA.
+
+```{r}
+ggplot(el_dat, aes(district_prof, ir_diff)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = jtc_oranges[[2]]) +
+  facet_wrap(~governance) +    
+theme_jtc(background = "light", base_family = "") +
+  labs(
+    title = "Schools with higher rates of proficiency have IR scores closer\nto target",
+    subtitle = "IR difference and proficiency by school governance",
+    x = "school proficiency",
+    y = "IR difference"
+  )
+```
+
+Finally, we see that the pattern holds for both charter and district schools. 
+
+It's also useful to construct a model to determine the numerical relationship between these variables. I created a simple linear regression that compares IR difference to school proficiency accounting for both year and subject.
+
+```{r}
+ir_diff_model <- lm(
+  ir_diff ~ school_prof + year + subject,
+  el_dat
+)
+
+summary(ir_diff_model) %>% 
+  broom::tidy() %>% 
+  pander(caption = "Regression table of IR difference")
+```
+
+The table above says that if a school goes from 0% to 100% proficient, regardless of year or subject, we can expect about a 19 point decrease in the percent difference between IR score and IR target. Obviously, a school with 0% proficient is not realistic, but this does help to quantify the strength of the relationship. 
+
+One possible explanation for this finding is that there are ceiling effects. This is the idea that there is some maximum score and that as you get closer to this score, large changes become more challenging. It may be worth exploring how targets are set to ensure that schools with high rates of academic proficiency have targets set which are challenging for them.
+
+## Sharing findings
+
+I would like to share the above finding with stakeholders, specifically to explore individual schools to determine if it holds true and help to inform decisions. 
+
+```{r}
+el_dat <- el_dat %>% 
+  mutate(
+    pred = predict(ir_diff_model, .),
+    resid = ir_diff - pred
+  )
+
+el_dat %>% 
+  arrange(resid, school_name) %>% 
+  ggplot(aes(fct_inorder(school_name), resid)) +
+    geom_jitter() +
+    coord_flip() + 
+  theme_jtc(background = "light", base_family = "") +
+    labs(
+      title = "School 2 greatly outperforms expected IR difference",
+      y = "residuals",
+      x = "school name"
+    )
+```
+
+The chart above shows the residuals for each school. The residuals are the predicted difference between IR score and IR target based on school proficiency rates. High residuals show scores that are greatly outperforming their predicted difference; low residuals show schools that are at or below their predicted difference. 
+
+School 2 seems to be exceeding their target by a large amount. Below is some specific data about this school. 
+
+```{r}
+el_dat %>% 
+  filter(school_name == "School 2") %>% 
+  mutate(
+    key = paste(subject, year, sep = " ")
+  ) %>% 
+  select(1:8, key, school_prof) %>% 
+  spread(key, school_prof) %>% 
+  gather() %>%
+  pander()
+```
+
+School 2 has a high percentage of low-income students (based on free and reduced lunch), has been an EL school for two years, has an IR target of 66, and consistently has slightly more than half of their students proficient. They far out-paced their target by getting an 88 on the IR, a greater difference than any other school. Assuming this target was appropriate for them, it may be worth exploring what contributed to their success, and using this school as a model for others. 
+
+```{r}
+el_dat %>% 
+  filter(school_name == "School 7") %>% 
+ mutate(
+    key = paste(subject, year, sep = " ")
+  ) %>% 
+  select(1:8, key, school_prof) %>% 
+  spread(key, school_prof) %>% 
+  gather() %>% 
+  pander()
+```
+
+School 7 had the lowest residuals. Being an EL school for 9 years, they had an IR target of 98. They had high rates of proficiency for two years of the data but saw major drops in proficiency in 2013-14. There is likely some larger context here, such as changes in school leadership, testing, or neighborhood, that is worth exploring.
+
+The finding above becomes useful when we examine how it plays out in individual schools and district. It would be important to work with EL staff to determine how, if at all, this might impact their work with schools.
+
+In order to share the rest of the data with schools and districts, it would I would create two resources. The first would be an interactive tool which would allow schools and districts to explore the data on their own. This would allow them to modify visualizations so that they could explore the relationship between IR score and math proficiency, for example. They could drill down to specific schools or pull back to look at whole districts. I have found putting data in the hands of practitioners and stakeholders generates useful insights and questions which can then be explored with more in-depth analysis. 
+
+However, there is still the need to have some summative findings. For each school, I would create a report which shared their final IR score (ideally including measures for each of the core practices rather than just a final number), alongside their school demographics and proficiency rates. It would show how their school compares to similar school. These could be used to facilitate conversations about areas of strength and growth. District would receive similar reports that included a district level version with information about each of their schools. 
